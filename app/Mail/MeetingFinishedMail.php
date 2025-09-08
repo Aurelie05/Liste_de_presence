@@ -3,51 +3,28 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class MeetingFinishedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct()
+    public $meeting;
+    public $pdf;
+
+    public function __construct($pdf, $meeting)
     {
-        //
+        $this->pdf = $pdf;
+        $this->meeting = $meeting;
     }
 
-    /**
-     * Get the message envelope.
-     */
-    public function envelope(): Envelope
+    public function build()
     {
-        return new Envelope(
-            subject: 'Meeting Finished Mail',
-        );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            markdown: 'emails.meeting',
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
+        return $this->subject('Compte-rendu de la réunion : '.$this->meeting->nom)
+            ->view('emails.meeting_finished') // ton message HTML
+            ->attachData($this->pdf->output(), 'liste_participants.pdf', [
+                'mime' => 'application/pdf',
+            ]);
     }
 }

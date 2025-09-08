@@ -3,22 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Meeting extends Model
 {
-    use HasFactory;
+    protected $fillable = ['nom', 'lieu', 'start_time', 'end_time', 'user_id','status'];
 
-    protected $fillable = [
-        'nom',
-        'fonction',
-        'titre',
-        'heure_debut',
-        'heure_fin',
-    ];
 
     public function participants()
     {
         return $this->hasMany(Participant::class);
     }
+    public function creator() {
+        return $this->belongsTo(User::class, 'user_id'); // ou le champ que tu utilises
+    }
+    
 }

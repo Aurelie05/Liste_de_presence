@@ -27,6 +27,10 @@
         "vite": "^6.2.4"
     },
     "dependencies": {
-        "react-router-dom": "^7.6.3"
+        "@inertiajs/inertia": "^0.11.1",
+        "@inertiajs/inertia-react": "^0.8.1",
+        "react-router-dom": "^7.6.3",
+        "react-signature-canvas": "^1.0.6",
+        "trim-canvas": "^0.1.2"
     }
 }

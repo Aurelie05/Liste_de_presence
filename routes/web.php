@@ -2,19 +2,19 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ParticipantController;
-
+use App\Http\Controllers\MeetingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
-Route::get('/', function () {
+Route::get('/', function (\Illuminate\Http\Request $request) {
     return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+        'meetingId' => $request->query('meeting_id'), // ← récupère l'ID
     ]);
-});
+})->name('welcome');
+
+
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -28,10 +28,72 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::get('/formulairedecreation', function () {
+
+
+Route::get('/confidentialité', function () {
+    return Inertia::render('Pagedeconfidentialité');
+});
+
+Route::get('/email', function () {
+    return Inertia::render('RegisterEmail');
+});
+
+Route::get('/form', function () {
     return Inertia::render('CreationForm');
 });
 
-Route::get('/listedepresence', function () {
-    return Inertia::render('MeetingPage');
+Route::get('/signature', function () {
+    return Inertia::render('SignaturePage');
 });
+Route::get('/success', function () {
+    return Inertia::render('Success');
+
+});
+Route::get('/dashboard', [App\Http\Controllers\MeetingController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+Route::get('/admincreate', function () {
+    return Inertia::render('CreationReuinion');
+
+});
+Route::prefix('admin')->middleware(['auth'])->group(function() {
+    Route::resource('meetings', MeetingController::class);
+    Route::resource('participants', ParticipantController::class);
+});
+
+Route::post('/participants', [ParticipantController::class, 'store'])->name('participants.store');
+
+Route::post('/meetings', [MeetingController::class, 'store'])->name('meetings.store');
+Route::post('/meetings/{meeting}/finish', [MeetingController::class, 'finish'])->name('meetings.finish');
+Route::delete('/meetings/{meeting}', [MeetingController::class, 'destroy'])->name('meetings.destroy');
+
+Route::get('/meetings/{meeting}/participants-list', function ($meetingId) {
+    $meeting = \App\Models\Meeting::with('participants')->findOrFail($meetingId);
+    return Inertia::render('ListeParticipants', [
+        'meeting' => $meeting,
+        'participants' => $meeting->participants,
+    ]);
+})->name('meetings.participants.list');
+
+Route::get('/meetings/{meetingId}/signature', function($meetingId){
+    return Inertia::render('SignaturePage', ['meetingId' => $meetingId]);
+})->name('meetings.signature');
+
+Route::get('/participants-list', [ParticipantController::class, 'index'])
+    ->name('participants.list');
+
+Route::post('/participants/add', [ParticipantController::class, 'addParticipant'])
+     ->name('participants.add');
+
+
+
+    Route::get('/test-mail', function () {
+        Mail::raw('Ceci est un test avec Mailtrap', function ($message) {
+            $message->to('roxaneakredjoro@gmail.com')
+                    ->subject('Test Mailtrap OK');
+        });
+    
+        return '✅ Email envoyé (vérifie Mailtrap)';
+    });
+    Route::get('/welcome/{meeting}', [MeetingController::class, 'show'])->name('welcome.show');

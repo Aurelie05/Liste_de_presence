@@ -2,7 +2,7 @@
 
 return [
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'INPHB'),
 
     'env' => env('APP_ENV', 'production'),
 
@@ -55,6 +55,7 @@ return [
         Illuminate\Filesystem\FilesystemServiceProvider::class, // ✅ nécessaire pour éviter l'erreur "files"
         Illuminate\Encryption\EncryptionServiceProvider::class,
         Illuminate\Cookie\CookieServiceProvider::class,
+        Barryvdh\DomPDF\ServiceProvider::class,
         /*
          * Application Service Providers...
          */
@@ -62,5 +63,9 @@ return [
         App\Providers\RouteServiceProvider::class,
 
     ],
+
+    'aliases' => [
+    'PDF' => Barryvdh\DomPDF\Facade::class,
+],
 
 ];
