@@ -8,9 +8,12 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\MeetingFinishedMail;
 use App\Models\Meeting;
 use PDF;
-use Endroid\QrCode\Builder\Builder;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\Writer\PngWriter;
+use Inertia\Inertia;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Renderer\Image\Png;
+use BaconQrCode\Writer;
+
 
 
 class MeetingController extends Controller
@@ -43,16 +46,26 @@ class MeetingController extends Controller
         'user_id' => auth()->id(),
     ]);
 
-     // Génération du QR code avec Endroid QR Code v4.x
-     $qrCode = new QrCode(route('welcome.show', $meeting->id));
-     $qrCode->setSize(400);
-     $qrCode->setErrorCorrectionLevel(ErrorCorrectionLevel::HIGH);
- 
-     return response($qrCode->writeString(), 200, [
-         'Content-Type' => $qrCode->getContentType(),
-         'Content-Disposition' => 'attachment; filename="qr_meeting_'.$meeting->id.'.png"',
-     ]);
+    // Lien vers la réunion
+    $url = route('welcome.show', $meeting->id);
+
+    // Génération QR code en PNG avec BaconQrCode v3
+    $renderer = new ImageRenderer(
+        new RendererStyle(400),
+        new Png()
+    );
+
+    $writer = new Writer($renderer);
+    $qrCodePng = $writer->writeString($url);
+
+    return response($qrCodePng, 200, [
+        'Content-Type' => 'image/png',
+        'Content-Disposition' => 'attachment; filename="qr_meeting_'.$meeting->id.'.png"',
+    ]);
 }
+
+
+
     
 
     // Affichage des participants d'une réunion
