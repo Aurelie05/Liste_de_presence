@@ -21,6 +21,23 @@ export default function CreationReunion() {
 
     Inertia.post("/meetings", formData, {
       onError: (errors) => setErrors(errors),
+      onSuccess: (page: any) => { // on peut utiliser `any` pour simplifier
+        const { meeting_id, qr_code_svg } = page.props as { meeting_id: number; qr_code_svg: string };
+    
+        // Créer un blob pour le téléchargement
+        const blob = new Blob([qr_code_svg], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+    
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `qr_meeting_${meeting_id}.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    
+        window.location.reload();
+    }
+,
     });
   };
 
@@ -29,11 +46,9 @@ export default function CreationReunion() {
       <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-xl font-bold mb-4">Nouvelle réunion</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          
+          {/* Champs du formulaire */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Nom de la réunion
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Nom de la réunion</label>
             <input
               type="text"
               name="nom"
@@ -46,9 +61,7 @@ export default function CreationReunion() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Lieu
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Lieu</label>
             <input
               type="text"
               name="lieu"
@@ -61,9 +74,7 @@ export default function CreationReunion() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Heure de début
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Heure de début</label>
             <input
               type="time"
               name="start_time"
@@ -71,15 +82,11 @@ export default function CreationReunion() {
               onChange={handleChange}
               className="mt-1 block w-full border rounded-md p-2"
             />
-            {errors.start_time && (
-              <p className="text-red-600 text-sm">{errors.start_time}</p>
-            )}
+            {errors.start_time && <p className="text-red-600 text-sm">{errors.start_time}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Heure de fin
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Heure de fin</label>
             <input
               type="time"
               name="end_time"
@@ -87,9 +94,7 @@ export default function CreationReunion() {
               onChange={handleChange}
               className="mt-1 block w-full border rounded-md p-2"
             />
-            {errors.end_time && (
-              <p className="text-red-600 text-sm">{errors.end_time}</p>
-            )}
+            {errors.end_time && <p className="text-red-600 text-sm">{errors.end_time}</p>}
           </div>
 
           <button
@@ -103,3 +108,4 @@ export default function CreationReunion() {
     </Authenticated>
   );
 }
+
