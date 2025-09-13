@@ -11,7 +11,7 @@ use PDF;
 use Inertia\Inertia;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Renderer\Image\Png;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Writer;
 
 
@@ -21,6 +21,7 @@ class MeetingController extends Controller
     // Création d'une réunion
     public function store(Request $request)
 {
+    // Validation
     $validator = Validator::make($request->all(), [
         'nom' => 'required|string|max:255',
         'lieu' => 'required|string|max:255',
@@ -38,6 +39,7 @@ class MeetingController extends Controller
     $startDateTime = $today . ' ' . $validated['start_time'];
     $endDateTime   = $today . ' ' . $validated['end_time'];
 
+    // Création de la réunion
     $meeting = Meeting::create([
         'nom' => $validated['nom'],
         'lieu' => $validated['lieu'],
@@ -49,24 +51,21 @@ class MeetingController extends Controller
     // Lien vers la réunion
     $url = route('welcome.show', $meeting->id);
 
-    // Génération QR code en PNG avec BaconQrCode v3
+    // Génération QR code en SVG
     $renderer = new ImageRenderer(
         new RendererStyle(400),
-        new Png()
+        new SvgImageBackEnd()
     );
 
     $writer = new Writer($renderer);
-    $qrCodePng = $writer->writeString($url);
+    $qrCodeSvg = $writer->writeString($url);
 
-    return response($qrCodePng, 200, [
-        'Content-Type' => 'image/png',
-        'Content-Disposition' => 'attachment; filename="qr_meeting_'.$meeting->id.'.png"',
+    // Retourner le SVG en téléchargement
+    return response($qrCodeSvg, 200, [
+        'Content-Type' => 'image/svg+xml',
+        'Content-Disposition' => 'attachment; filename="qr_meeting_'.$meeting->id.'.svg"',
     ]);
-}
-
-
-
-    
+}  
 
     // Affichage des participants d'une réunion
     public function participants(Meeting $meeting)
