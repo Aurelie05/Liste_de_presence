@@ -162,27 +162,30 @@
     </div>
 
     <table>
-        <thead>
+    <thead>
+        <tr>
+            <th>N°</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Fonction</th>
+            <th>Structure</th> <!-- 🔹 ajouté -->
+            <th>Email</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($meeting->participants as $index => $participant)
             <tr>
-                <th>N°</th>
-                <th>Nom</th>
-                <th>Prénom</th>
-                <th>Fonction</th>
-                <th>Email</th>
+                <td>{{ $index + 1 }}</td>
+                <td>{{ $participant->nom }}</td>
+                <td>{{ $participant->prenom }}</td>
+                <td>{{ $participant->fonction }}</td>
+                <td>{{ $participant->structure ?? '-' }}</td> <!-- 🔹 affichage structure -->
+                <td>{{ $participant->email ?? '-' }}</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach($meeting->participants as $index => $participant)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $participant->nom }}</td>
-                    <td>{{ $participant->prenom }}</td>
-                    <td>{{ $participant->fonction }}</td>
-                    <td>{{ $participant->email ?? '-' }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+        @endforeach
+    </tbody>
+</table>
+
     
     <div class="signature-area">
         <div class="signature-line">Signature autorisée</div>

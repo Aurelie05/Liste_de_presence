@@ -8,11 +8,14 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
-Route::get('/', function (\Illuminate\Http\Request $request) {
-    return Inertia::render('Welcome', [
-        'meetingId' => $request->query('meeting_id'), // ← récupère l'ID
-    ]);
-})->name('welcome');
+// Page Welcome après scan QR
+Route::get('/welcome/{meetingId}', [MeetingController::class, 'show'])->name('welcome.show');
+
+// Dashboard pour créer / lister les meetings
+Route::get('/dashboard', [MeetingController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
 
 
 
@@ -85,15 +88,3 @@ Route::get('/participants-list', [ParticipantController::class, 'index'])
 
 Route::post('/participants/add', [ParticipantController::class, 'addParticipant'])
      ->name('participants.add');
-
-
-
-    Route::get('/test-mail', function () {
-        Mail::raw('Ceci est un test avec Mailtrap', function ($message) {
-            $message->to('roxaneakredjoro@gmail.com')
-                    ->subject('Test Mailtrap OK');
-        });
-    
-        return '✅ Email envoyé (vérifie Mailtrap)';
-    });
-    Route::get('/welcome/{meeting}', [MeetingController::class, 'show'])->name('welcome.show');

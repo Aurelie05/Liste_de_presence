@@ -21,12 +21,14 @@ export default function Success() {
 
   const handleReturn = () => {
     if (meetingId) {
-      // On passe l'ID en paramètre dans l'URL
-      window.location.href = `/?meeting_id=${meetingId}`;
+      // On redirige vers la route /welcome/:meetingId
+      window.location.href = `/welcome/${meetingId}`;
     } else {
-      window.location.href = "/"; // sinon vers l'accueil
+      // sinon vers l'accueil
+      window.location.href = "/";
     }
   };
+  
 
   return (
     <>

@@ -5,33 +5,19 @@ import logo from '@/Assets/Icon.png'
 
 export default function Welcome() {
   // Typage clair des props reçues
-  const { props } = usePage<PageProps & { meeting?: any; meetingId?: string }>();
-  const { meeting, meetingId } = props;
+  const { props } = usePage<PageProps & { meeting?: any }>();
+const meeting = props.meeting;
 
-  // Récupération de l'ID depuis l'URL si dispo
-  let urlMeetingId: string | null = null;
-  if (typeof window !== "undefined") {
-    const searchParams = new URLSearchParams(window.location.search);
-    urlMeetingId = searchParams.get("meeting_id");
-  }
-
-  const finalMeetingId = meetingId || urlMeetingId;
-
-  
-
- // Vérifie si la réunion est terminée
+// Vérifie si la réunion est terminée
 const hasMeeting = !!meeting;
+const isMeetingFinished = meeting?.status === "closed";
 
-const isMeetingFinished =
-  hasMeeting &&
-  (meeting.status === "closed" ||
-    (meeting.end_time &&
-      new Date(`${new Date().toISOString().split("T")[0]}T${meeting.end_time}`) <
-        new Date()));
 
 console.log("meeting.end_time:", meeting?.end_time);
 console.log("isMeetingFinished:", isMeetingFinished);
 console.log("meeting:", meeting);
+console.log("meeting.status:", meeting?.status);
+
 
 const handleInscription = () => {
   if (isMeetingFinished) {
@@ -117,12 +103,13 @@ const handleInscription = () => {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <div>
-        <h3 className="font-semibold text-yellow-700 text-lg mb-1">
-          {finalMeetingId ? "Réunion terminée" : "Aucune réunion spécifiée"}
-        </h3>
-        <p className="text-yellow-600 text-sm">
-          {finalMeetingId ? "Les inscriptions pour cette réunion sont closes." : "Veuillez utiliser le lien d'invitation fourni par l'organisateur."}
-        </p>
+      <h3 className="font-semibold text-yellow-700 text-lg mb-1">
+          {hasMeeting ? "Réunion terminée" : "Aucune réunion spécifiée"}
+      </h3>
+      <p className="text-yellow-600 text-sm">
+        {hasMeeting ? "Les inscriptions pour cette réunion sont closes." : "Veuillez utiliser le lien d'invitation fourni par l'organisateur."}
+      </p>
+
       </div>
     </div>
   </div>

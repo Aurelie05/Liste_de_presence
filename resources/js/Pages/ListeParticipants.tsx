@@ -9,6 +9,7 @@ interface Participant {
   nom: string;
   prenom: string;
   fonction: string;
+  structure?: string;
   email?: string;
 }
 
@@ -24,6 +25,7 @@ export default function ListeParticipants({ meetings }: { meetings: Meeting[] })
     nom: "",
     prenom: "",
     fonction: "",
+    structure: "",
     email: "",
     meeting_id: "",
     admin_signature: "",
@@ -32,19 +34,27 @@ export default function ListeParticipants({ meetings }: { meetings: Meeting[] })
   const sigCanvas = useRef<SignatureCanvas>(null);
 
   const handleAddParticipant = () => {
-    // Vérifie que la signature n'est pas vide
     if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
       return alert("Veuillez signer avant d'ajouter le participant !");
     }
 
-    // Récupère la signature en base64
     const signature = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png");
     const dataToSend = { ...formData, admin_signature: signature };
+
+    console.log("📤 Données envoyées :", dataToSend); // Debug
 
     router.post("/participants/add", dataToSend, {
       onSuccess: () => {
         alert("Participant ajouté !");
-        setFormData({ nom: "", prenom: "", fonction: "", email: "", meeting_id: "", admin_signature: "" });
+        setFormData({
+          nom: "",
+          prenom: "",
+          fonction: "",
+          structure: "",
+          email: "",
+          meeting_id: "",
+          admin_signature: "",
+        });
         sigCanvas.current?.clear();
         setShowModal(false);
       },
@@ -120,6 +130,13 @@ export default function ListeParticipants({ meetings }: { meetings: Meeting[] })
               className="border p-2 rounded w-full mb-2"
             />
             <input
+              type="text"
+              placeholder="Structure"
+              value={formData.structure}
+              onChange={(e) => setFormData({ ...formData, structure: e.target.value })}
+              className="border p-2 rounded w-full mb-2"
+            />
+            <input
               type="email"
               placeholder="Email"
               value={formData.email}
@@ -179,6 +196,7 @@ export default function ListeParticipants({ meetings }: { meetings: Meeting[] })
                     <th className="border p-2">Nom</th>
                     <th className="border p-2">Prénom</th>
                     <th className="border p-2">Fonction</th>
+                    <th className="border p-2">Structure</th>
                     <th className="border p-2">Email</th>
                   </tr>
                 </thead>
@@ -188,6 +206,7 @@ export default function ListeParticipants({ meetings }: { meetings: Meeting[] })
                       <td className="border p-2">{p.nom}</td>
                       <td className="border p-2">{p.prenom}</td>
                       <td className="border p-2">{p.fonction}</td>
+                      <td className="border p-2">{p.structure ?? "-"}</td>
                       <td className="border p-2">{p.email ?? "-"}</td>
                     </tr>
                   ))}

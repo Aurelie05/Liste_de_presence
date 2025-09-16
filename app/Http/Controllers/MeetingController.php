@@ -60,12 +60,14 @@ class MeetingController extends Controller
     $writer = new Writer($renderer);
     $qrCodeSvg = $writer->writeString($url);
 
-    // Retourner le SVG en téléchargement
-    return response($qrCodeSvg, 200, [
-        'Content-Type' => 'image/svg+xml',
-        'Content-Disposition' => 'attachment; filename="qr_meeting_'.$meeting->id.'.svg"',
-    ]);
-}  
+    // ✅ Stockage en session via flash
+    return redirect()
+        ->route('meetings.index') // Redirection vers Dashboard / liste
+        ->with('success', 'Réunion créée avec succès!')
+        ->with('qr_code_svg', $qrCodeSvg)
+        ->with('meeting_id', $meeting->id);
+}
+
 
     // Affichage des participants d'une réunion
     public function participants(Meeting $meeting)
@@ -80,25 +82,35 @@ class MeetingController extends Controller
     }
 
     public function finish(Meeting $meeting)
-{
-    $meeting->status = 'closed'; // 🔒 réunion fermée
-    $meeting->save();
-
-    // Générer le PDF
-    $pdf = Pdf::loadView('pdf.liste', [
-        'participants' => $meeting->participants,
-        'meeting' => $meeting
-    ]);
-
-    if ($meeting->creator && !empty($meeting->creator->email)) {
-        Mail::to($meeting->creator->email)
-            ->send(new MeetingFinishedMail($pdf, $meeting));
+    {
+        $meeting->status = 'closed';
+        $meeting->save();
+    
+        // Générer le PDF
+        $pdf = Pdf::loadView('pdf.liste', [
+            'participants' => $meeting->participants,
+            'meeting' => $meeting
+        ]);
+    
+        // Mail au créateur
+        if ($meeting->creator && !empty($meeting->creator->email)) {
+            Mail::to($meeting->creator->email)
+                ->send(new MeetingFinishedMail($pdf, $meeting));
+        }
+    
+        // Mail à tous les participants
+        foreach ($meeting->participants as $participant) {
+            if (!empty($participant->email)) {
+                Mail::to($participant->email)
+                    ->send(new \App\Mail\ParticipantMeetingFinishedMail($meeting, $participant));
+            }
+        }
+        
+    
+        return redirect()->route('participants.list')
+            ->with('success', 'Réunion terminée, mails envoyés au créateur et aux participants.');
     }
-
-    return redirect()->route('participants.list')
-        ->with('success', 'Réunion terminée, email envoyé au créateur. Plus personne ne peut s’inscrire.');
-}
-
+    
 
 
 public function index(Request $request)
@@ -120,12 +132,18 @@ public function index(Request $request)
     $meeting->delete();
     return redirect()->back();
 }
-public function show(Meeting $meeting)
+public function show($meetingId)
 {
+    $meeting = Meeting::find($meetingId);
+
     return Inertia::render('Welcome', [
-        'meeting' => $meeting->only(['id', 'nom', 'lieu', 'start_time', 'end_time', 'status']),
+        'meeting' => $meeting?->only(['id', 'nom', 'lieu', 'start_time', 'end_time', 'status']) ?? null,
     ]);
 }
+
+
+
+
 
 
 

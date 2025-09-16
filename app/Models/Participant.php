@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Participant extends Model
 {
-    protected $fillable = ['meeting_id', 'nom', 'prenom', 'fonction', 'email', 'signature'];
+    protected $fillable = ['meeting_id', 'nom', 'prenom', 'fonction','structure', 'email', 'signature'];
+
 
     public function meeting()
     {

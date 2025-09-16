@@ -8,9 +8,13 @@ import logo from '@/Assets/Icon.png'
 export default function SignaturePage() {
   const searchParams = new URLSearchParams(window.location.search);
   const meetingId = searchParams.get("meeting_id"); // 🔹 récupère depuis l'URL
-
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+
+// Calcul de la taille du canvas pour garder le ratio
+  const canvasWidth = Math.min(500, window.innerWidth * 0.9);
+  const canvasHeight = (200 / 500) * canvasWidth; // garde le ratio original
 
   // 👉 Fonction pour envoyer les infos au backend
   const envoyerParticipant = async () => {
@@ -23,10 +27,13 @@ export default function SignaturePage() {
       nom: localStorage.getItem("nom"),
       prenom: localStorage.getItem("prenom"),
       fonction: localStorage.getItem("fonction"),
+      structure: localStorage.getItem("structure"), // 🔹 ajouter ça
       email: localStorage.getItem("email"),
       signature: localStorage.getItem("signature"),
       meeting_id: meetingId,
     };
+    
+    
   
     console.log("Données envoyées :", data);
   
@@ -130,17 +137,18 @@ export default function SignaturePage() {
                 </div>
 
                 {/* Zone de signature */}
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
-                  <SignatureCanvas
-                    ref={sigCanvas}
-                    penColor="black"
-                    canvasProps={{
-                      width: 500,
-                      height: 200,
-                      className: "w-full h-50 border border-gray-200 rounded bg-white",
-                    }}
-                  />
-                </div>
+<div className="flex justify-center items-center my-4">
+  <SignatureCanvas
+    ref={sigCanvas}
+    penColor="black"
+    canvasProps={{
+      width: canvasWidth,
+      height: canvasHeight,
+      style: { border: "1px solid #ccc", borderRadius: "8px" },
+    }}
+  />
+</div>
+
                 
                 <p className="text-xs text-gray-500 mt-2 text-center">
                   Signez dans la zone ci-dessus en maintenant le bouton de la souris enfoncé

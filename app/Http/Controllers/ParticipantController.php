@@ -26,6 +26,7 @@ class ParticipantController extends Controller
         'nom' => 'required|string|max:255',
         'prenom' => 'required|string|max:255',
         'fonction' => 'required|string|max:255',
+        'structure' => 'nullable|string|max:255', // ✅ ajouté
         'email' => 'nullable|email|max:255',
         'signature' => 'nullable|string',
         'meeting_id' => 'required|integer|exists:meetings,id',
@@ -59,8 +60,9 @@ public function addParticipant(Request $request)
         'nom'        => 'required|string|max:255',
         'prenom'     => 'required|string|max:255',
         'fonction'   => 'required|string|max:255',
+        'structure'  => 'nullable|string|max:255', // ✅ ajouté ici
         'email'      => 'nullable|email|max:255',
-        'admin_signature' => 'required|string', // 🔹 récupère la signature
+        'admin_signature' => 'required|string',
     ]);
 
     if ($validator->fails()) {
@@ -72,8 +74,9 @@ public function addParticipant(Request $request)
         'nom'        => $request->nom,
         'prenom'     => $request->prenom,
         'fonction'   => $request->fonction,
+        'structure'  => $request->structure,   // ✅ maintenant on enregistre bien la structure
         'email'      => $request->email,
-        'signature'  => $request->admin_signature, // 🔹 ici dans le champ signature
+        'signature'  => $request->admin_signature,
     ]);
 
     return redirect()->back()->with('success', 'Participant ajouté avec succès.');
