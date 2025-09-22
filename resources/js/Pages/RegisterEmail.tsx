@@ -3,47 +3,74 @@ import Guest from "@/Layouts/GuestLayout";
 import { router, Head } from "@inertiajs/react";
 import logo from '@/Assets/Icon.png'
 
-export default function RegisterEmail() {
-  const [email, setEmail] = useState("");
-  const searchParams = new URLSearchParams(window.location.search);
-  const meetingId = searchParams.get("meeting_id"); // récupère l'ID depuis l'URL
 
-  const handleSubmit = () => {
-    if (!meetingId) {
-      alert("ID de réunion manquant !");
-      return;
-    }
-
-    localStorage.setItem("email", email);
-    localStorage.setItem("meeting_id", meetingId); // on stocke l'ID pour la suite
-
-    // on redirige vers la page Form en conservant l'ID
-    router.visit(`/form?meeting_id=${meetingId}`);
-  };
+  export default function RegisterEmail() {
+    const [email, setEmail] = useState("");
+    const [errorMessage, setErrorMessage] = useState(""); // pour afficher les erreurs
+    const searchParams = new URLSearchParams(window.location.search);
+    const meetingId = searchParams.get("meeting_id"); // ID réunion depuis URL
+  
+    const handleSubmit = async () => {
+      setErrorMessage(""); // reset erreur
+  
+      if (!meetingId) {
+        setErrorMessage("ID de réunion manquant !");
+        return;
+      }
+  
+      if (!email) {
+        setErrorMessage("Veuillez saisir votre email.");
+        return;
+      }
+  
+      try {
+        const response = await fetch("/participants/check-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement).content,
+          },
+          body: JSON.stringify({ meeting_id: meetingId, email }),
+        });
+  
+        if (!response.ok) {
+          console.error("Status:", response.status);
+          throw new Error("Réponse serveur invalide");
+        }
+        
+  
+        const data = await response.json();
+  
+        if (data.exists) {
+          setErrorMessage("⚠️ Cet email est déjà inscrit pour cette réunion !");
+          return;
+        }
+  
+        // Sinon on stocke et on redirige vers la page Form
+        localStorage.setItem("email", email);
+        localStorage.setItem("meeting_id", meetingId);
+        router.visit(`/form?meeting_id=${meetingId}`);
+        
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Une erreur est survenue. Veuillez réessayer.");
+      }
+    };
+  
 
   return (
     <>
       <Head title="Saisie d'Email" />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="w-full max-w-4xl" style={{ width: '70%' }}>
           <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
             
-            {/* En-tête avec logo INPHB */}
+            {/* En-tête */}
             <div className="bg-gradient-to-r from-indigo-800 to-indigo-600 py-6 px-8 text-center">
               <div className="flex flex-col items-center justify-center">
-                {/* Logo INPHB */}
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg p-2">
-                  <img 
-                    src={logo} 
-                    alt="Logo INPHB" 
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      // Fallback si l'image ne charge pas
-                      const target = e.target as HTMLImageElement;
-                      target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'%3E%3Cpath d='M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z'/%3E%3C/svg%3E";
-                    }}
-                  />
+                  <img src={logo} alt="Logo INPHB" className="w-full h-full object-contain" />
                 </div>
                 <h1 className="text-3xl font-bold text-white mb-1">INPHB</h1>
                 <p className="text-indigo-200 text-lg">Institut National Polytechnique</p>
@@ -51,7 +78,7 @@ export default function RegisterEmail() {
                 <p className="text-indigo-100 text-sm mt-2">Inscription à la réunion</p>
               </div>
             </div>
-            
+
             {/* Contenu principal */}
             <div className="p-8">
               <div className="text-center mb-8">
@@ -70,9 +97,12 @@ export default function RegisterEmail() {
                   type="email"
                   placeholder="exemple@mail.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setErrorMessage(""); }}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
                 />
+                {errorMessage && (
+                  <p className="text-red-600 text-sm mt-2">{errorMessage}</p>
+                )}
                 <p className="text-xs text-gray-500 mt-2">
                   Votre email sera utilisé uniquement pour cette réunion et ne sera pas partagé.
                 </p>
@@ -83,9 +113,6 @@ export default function RegisterEmail() {
                 disabled={!email}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-4 px-6 rounded-lg transition duration-300 flex items-center justify-center shadow-md transform hover:scale-105 disabled:hover:scale-100"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                </svg>
                 Continuer
               </button>
 

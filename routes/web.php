@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MeetingAudioController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
@@ -16,7 +17,10 @@ Route::get('/dashboard', [MeetingController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-
+  
+Route::get('/', function () {
+    return Inertia::render('Welcome'); // ⚠️ "Welcome" est le nom du composant React dans resources/js/Pages
+});
 
 
 Route::get('/dashboard', function () {
@@ -88,3 +92,9 @@ Route::get('/participants-list', [ParticipantController::class, 'index'])
 
 Route::post('/participants/add', [ParticipantController::class, 'addParticipant'])
      ->name('participants.add');
+     Route::post('/participants/check-email', [ParticipantController::class, 'checkEmail']);
+
+     // routes/web.php
+Route::post('/participants/check-email', [ParticipantController::class, 'checkEmail']);
+
+Route::post('/reunions/upload-audio', [MeetingAudioController::class, 'store']);
